@@ -1,12 +1,12 @@
-# 🧠 Nexus AI Facilitator (Campus Mentor AI)
+# 🧠 AI Facilitator
 **Built for HackMIT China 2026**
 
-Nexus AI Facilitator is a real-time, deterministic cognitive mediator designed to instantly distill the chaotic entropy of student brainstorming into rigorously structured, actionable blueprints. 
+AI Facilitator is a real-time, deterministic cognitive mediator designed to instantly distill the chaotic entropy of student brainstorming into rigorously structured, actionable blueprints. 
 
 ## 📖 Project Background
 During group projects and hackathons, discussions frequently devolve into disorganized, circular tangents. While human creativity is wildly abundant, manually compiling fragmented ideas into a cohesive, executable plan is incredibly tedious. 
 
-Instead of replacing the human spark with generative AI, we built a digital referee. Nexus acts as a "Campus Innovation Mentor," monitoring real-time chat streams to untangle the verbal labyrinth of group work. It separates actionable gold from conversational static, evaluating ideas based strictly on innovation and fair collaboration.
+Instead of replacing the human spark with generative AI, we built a digital referee. Our facilitator acts as a "Campus Innovation Mentor," monitoring real-time chat streams to untangle the verbal labyrinth of group work. It separates actionable gold from conversational static, evaluating ideas based strictly on innovation and fair collaboration.
 
 ## ✨ Core Features
 * **⚡ Real-Time Chaos Stream:** A bi-directional, WebSocket-powered chat interface where multiple users can rapidly inject their perspectives simultaneously.
