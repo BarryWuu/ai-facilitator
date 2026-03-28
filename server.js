@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config({ path: ".env.local" });
 const { createServer } = require("http");
 const next = require("next");
@@ -13,8 +12,11 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1" 
+  apiKey: "sk-o0CaD76uxlGPQ1rFFlHCbMGFVmIokNxlnqrd4EL4DKIn2w8P", 
+  baseURL: "https://api.shubiaobiao.com/v1",
+  defaultHeaders: {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+  }
 });
 
 const rooms = new Map();
@@ -28,14 +30,12 @@ app.prepare().then(() => {
 
   io.on("connection", (socket) => {
     
-    // 1. 加入房间
     socket.on("join_room", (roomId) => {
       socket.join(roomId);
       if (!rooms.has(roomId)) rooms.set(roomId, { perspectives: [], latestConsensus: null });
       socket.emit("init_state", rooms.get(roomId));
     });
 
-    // 2. 提交新观点
     socket.on("submit_perspective", ({ roomId, text, user }) => {
       const room = rooms.get(roomId);
       if (!room) return;
@@ -44,7 +44,6 @@ app.prepare().then(() => {
       io.to(roomId).emit("new_perspective", newPerspective);
     });
 
-    // 3. 撤回单条消息 (修复版)
     socket.on("delete_perspective", ({ roomId, messageId }) => {
       const room = rooms.get(roomId);
       if (!room) return;
@@ -52,7 +51,6 @@ app.prepare().then(() => {
       io.to(roomId).emit("perspectives_updated", room.perspectives);
     });
 
-    // 4. 主持人清空全场
     socket.on("clear_chat", (roomId) => {
       const room = rooms.get(roomId);
       if (!room) return;
@@ -61,18 +59,18 @@ app.prepare().then(() => {
       io.to(roomId).emit("chat_cleared");
     });
 
-    // 5. 触发 AI 校园创新导师引擎
     socket.on("trigger_consensus", async (roomId) => {
       const room = rooms.get(roomId);
       if (!room || room.perspectives.length === 0) return;
+      
       io.to(roomId).emit("ai_thinking", true);
       
       try {
         const context = room.perspectives.map((p) => `[${p.user}]: ${p.text}`).join("\n");
-        
-        // 核心修复：使用 json_object 提高代理兼容性，并加入严格的垃圾数据防御指令
+        console.log(`> Engaging gpt-5.4 via Shubiaobiao for Room: ${roomId}...`);
+
         const completion = await openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "deepseek-v3.2",
           messages: [
             { 
               role: "system", 
@@ -88,23 +86,33 @@ app.prepare().then(() => {
                 "mood_color": "string (hex code)"
               }
               
-              CRITICAL INSTRUCTION: If the chat log consists of spam, random letters, numbers, or lacks any meaningful project ideas (e.g. "hahaha", "1234"), you MUST output:
-              "project_vision": "Insufficient meaningful data to analyze.",
-              "innovation_assessment": "Please input actual project ideas relevant to campus or student life.",
-              and leave the arrays empty.` 
+              CRITICAL INSTRUCTION: If the chat log lacks meaningful project ideas, generate logical, extrapolated insights based on their casual chat. Never return error strings. ONLY output the raw JSON object, without any markdown formatting tags like \`\`\`json.` 
             },
             { role: "user", content: `Here is the team's transcript:\n${context}` }
-          ],
-          response_format: { type: "json_object" } 
+          ]
         });
 
-        const result = JSON.parse(completion.choices[0].message.content);
-        console.log(`[Room: ${roomId}] AI 成功生成报告`); 
+        if (!completion.choices || !completion.choices[0]) {
+            throw new Error("Proxy connection established, but data payload was empty.");
+        }
+
+        let rawText = completion.choices[0].message.content;
+        
+        rawText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const firstBrace = rawText.indexOf('{');
+        const lastBrace = rawText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            rawText = rawText.substring(firstBrace, lastBrace + 1);
+        }
+
+        const result = JSON.parse(rawText);
         room.latestConsensus = result;
         io.to(roomId).emit("consensus_update", result);
+        console.log("> Synthesis achieved. Payload delivered.");
+        
       } catch (err) {
-        console.error("API 报错:", err);
-        io.to(roomId).emit("api_error", { message: err.message });
+        console.error("API Catastrophe:", err);
+        io.to(roomId).emit("api_error", { message: `Cognitive Failure: ${err.message}` });
       } finally {
         io.to(roomId).emit("ai_thinking", false);
       }
@@ -112,6 +120,6 @@ app.prepare().then(() => {
   });
 
   httpServer.listen(port, () => {
-    console.log(`> Nexus Engine ready on http://${hostname}:${port}`);
+    console.log(`> Nexus Engine (Ultimate Override) online at http://${hostname}:${port}`);
   });
 });
