@@ -41,7 +41,7 @@ export default function Hall() {
         >
           <div className="text-center mb-8">
             <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-2 tracking-tighter">
-              NEXUS FACILITATOR
+              The AI FACILITATOR
             </h1>
             <p className="text-xs text-gray-500 uppercase tracking-[0.3em]">Universal Consensus Engine</p>
           </div>
