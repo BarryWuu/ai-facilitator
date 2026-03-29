@@ -38,7 +38,7 @@ OPENAI_API_KEY=sk-your-proxy-key-here
 
 4. Ignite the Engine:
 npm run dev
-# or
+or
 node server.js
 
 
